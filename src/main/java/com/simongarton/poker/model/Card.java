@@ -11,4 +11,8 @@ public class Card {
 
     public Suit suit;
     public Rank rank;
+
+    public String getCaption() {
+        return rank.getName() + " " + suit.getName();
+    }
 }

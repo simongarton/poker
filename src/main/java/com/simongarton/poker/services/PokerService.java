@@ -40,7 +40,7 @@ public class PokerService {
         }
         if (debug) {
             try {
-                Files.write(Paths.get("output.csv"),tracking, Charset.defaultCharset()); //tracking.forEach(System.out::println);
+                Files.write(Paths.get("output.csv"), tracking, Charset.defaultCharset()); //tracking.forEach(System.out::println);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -242,10 +242,6 @@ public class PokerService {
             throw new RuntimeException("Ran out of players");
         }
         Player p = tieBreakPlayers.get(0);
-        if (0 >= p.getSortedRemainingCards().size() - 1) {
-            // TODO split pot
-            return null;
-        }
         return tieBreakHighestKicker(tieBreakPlayers, 0);
     }
 
@@ -254,6 +250,12 @@ public class PokerService {
     }
 
     private Player tieBreakHighestKicker(List<Player> somePlayers, int n) {
+        Player p1 = somePlayers.get(0);
+        if (n >= p1.getSortedRemainingCards().size() - 1) {
+            // TODO split pot
+            return null;
+        }
+
         List<Player> tieBreakPlayers = new ArrayList<>(somePlayers);
         int highKicker = 0;
         for (Player p : tieBreakPlayers) {
@@ -276,10 +278,6 @@ public class PokerService {
             throw new RuntimeException("Ran out of tiebreaks");
         }
         Player p = tieBreakPlayers.get(0);
-        if (n == p.getSortedRemainingCards().size() - 1) {
-            // TODO split pot
-            return null;
-        }
         return tieBreakHighestKicker(tieBreakPlayers, n + 1);
     }
 

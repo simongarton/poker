@@ -8,10 +8,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,6 +26,39 @@ class PokerServiceTest {
     void empty() {
         Player winner = pokerService.getWinner(Collections.emptySet(), 2, Collections.emptySet());
         assertNotNull(winner);
+    }
+
+    @Test
+    void mapOutTwoCards() {
+        Set<Card> cards = new HashSet<>();
+        Card card1;
+        Card card2;
+        List<String> lines = new ArrayList<>();
+        String line = ",";
+        for (Rank r1 : Rank.values()) {
+            line = line + r1.getName() + ",";
+        }
+        lines.add(line);
+
+        for (Rank r1 : Rank.values()) {
+            line = r1.getName() + ",";
+            for (Rank r2 : Rank.values()) {
+                card1 = new Card(Suit.CLUBS, r1);
+                card2 = new Card(Suit.SPADES, r2);
+                cards.clear();
+                cards.add(card1);
+                cards.add(card2);
+                double percentage = pokerService.getWinningPercentage(cards, 5, 3, 10000);
+                System.out.println(card1.getCaption() + " + " + card2.getCaption() + " = " + percentage);
+                line = line + percentage + ",";
+            }
+            lines.add(line);
+        }
+        try {
+            Files.write(Paths.get("two_cards.csv"), lines, Charset.defaultCharset());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test

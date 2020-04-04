@@ -3,6 +3,10 @@ package com.simongarton.poker.services;
 import com.simongarton.poker.model.*;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static com.simongarton.poker.model.Suit.*;
@@ -12,15 +16,42 @@ public class PokerService {
 
     public Suit[] SUITS = new Suit[]{CLUBS, DIAMONDS, HEARTS, SPADES};
 
-    private Set<Card> deck;
+    private List<Card> deck;
     private Set<Card> communityCards = new HashSet<>();
     private List<Player> players = new ArrayList<>();
     private Player winner;
+    private boolean debug = false;
 
-    public BestHand calculate(Set<Card> cards, int playerCount, Set<Card> communityCards) {
+    public double getWinningPercentage(Set<Card> cards, int playerCount, int communityCardCount, int iterations) {
+
+        double wins = 0;
+        List<String> tracking = new ArrayList<>();
+        for (int i = 1; i <= iterations; i++) {
+            Player p = getWinner(cards, playerCount, communityCardCount);
+            if (p == null) {
+                wins += 0.5;
+            } else {
+                if (p.getId() == 1) {
+                    wins++;
+                }
+            }
+            String line = i + "," + String.format("%.0f", wins) + "," + String.format("%.3f", wins / i);
+            if (debug) tracking.add(line);
+        }
+        if (debug) {
+            try {
+                Files.write(Paths.get("output.csv"),tracking, Charset.defaultCharset()); //tracking.forEach(System.out::println);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return 1.0 * wins / iterations;
+    }
+
+    public Player getWinner(Set<Card> cards, int playerCount, Set<Card> communityCards) {
         setupPlayers(playerCount);
+        setupDeck();
 
-        deck = getFullDeck();
         setupPlayer1(cards);
         setupCommunityCards(communityCards);
         setupOtherPlayers();
@@ -28,8 +59,28 @@ public class PokerService {
         scoreHands();
         winner = getWinningPlayer();
 
-        debugHands();
-        return winner.getBestHand();
+        if (debug) debugHands();
+        return winner;
+    }
+
+    private void setupDeck() {
+        deck = new ArrayList<>(getFullDeck());
+        Collections.shuffle(deck, new Random());
+    }
+
+    public Player getWinner(Set<Card> cards, int playerCount, int communityCardCount) {
+        setupPlayers(playerCount);
+        setupDeck();
+
+        setupPlayer1(cards);
+        setupCommunityCards(communityCardCount);
+        setupOtherPlayers();
+
+        scoreHands();
+        winner = getWinningPlayer();
+
+        if (debug) debugHands();
+        return winner;
     }
 
     private Player getWinningPlayer() {
@@ -37,10 +88,11 @@ public class PokerService {
         somePlayers.sort(Comparator.comparing(p -> ((Player) p).getBestHand().getScoringCombination().getValue()).reversed());
         int topScore = somePlayers.get(0).getBestHand().getScoringCombination().getValue();
         Iterator<Player> iterator = somePlayers.iterator();
-        while(iterator.hasNext()) {
+        while (iterator.hasNext()) {
             Player p = iterator.next();
             if (p.getBestHand().getScoringCombination().getValue() != topScore) {
-                iterator.remove();;
+                iterator.remove();
+                ;
             }
         }
         if (somePlayers.size() == 1) {
@@ -51,17 +103,27 @@ public class PokerService {
 
     private Player tieBreak(List<Player> somePlayers) {
         ScoringCombination sc = somePlayers.get(0).getBestHand().getScoringCombination();
-        switch(sc) {
-            case NO_PAIR: return tieBreakNoPair(somePlayers);
-            case ONE_PAIR: return tieBreakOnePair(somePlayers);
-            case TWO_PAIR: return tieBreakTwoPair(somePlayers);
-            case THREE_OF_A_KIND: return tieBreakThreeOfAKind(somePlayers);
-            case STRAIGHT: return tieBreakStraight(somePlayers);
-            case FLUSH: return tieBreakFlush(somePlayers);
-            case FULL_HOUSE: return tieBreakFullHouse(somePlayers);
-            case FOUR_OF_A_KIND: return tieBreakFourOfAKind(somePlayers);
-            case STRAIGHT_FLUSH: return tieBreakStraightFlush(somePlayers);
-            default: throw new RuntimeException("No tiebreak");
+        switch (sc) {
+            case NO_PAIR:
+                return tieBreakNoPair(somePlayers);
+            case ONE_PAIR:
+                return tieBreakOnePair(somePlayers);
+            case TWO_PAIR:
+                return tieBreakTwoPair(somePlayers);
+            case THREE_OF_A_KIND:
+                return tieBreakThreeOfAKind(somePlayers);
+            case STRAIGHT:
+                return tieBreakStraight(somePlayers);
+            case FLUSH:
+                return tieBreakFlush(somePlayers);
+            case FULL_HOUSE:
+                return tieBreakFullHouse(somePlayers);
+            case FOUR_OF_A_KIND:
+                return tieBreakFourOfAKind(somePlayers);
+            case STRAIGHT_FLUSH:
+                return tieBreakStraightFlush(somePlayers);
+            default:
+                throw new RuntimeException("No tiebreak");
         }
     }
 
@@ -83,10 +145,10 @@ public class PokerService {
         for (Player p : somePlayers) {
             Pair pair = new Pair();
             List<Card> sortedCards = new ArrayList<>(p.getCards());
-            sortedCards.sort(Comparator.comparing(c -> ((Card)c).getRank().getValue()));
+            sortedCards.sort(Comparator.comparing(c -> ((Card) c).getRank().getValue()));
             pair.low = sortedCards.get(0).getRank().getValue();
-            pair.high = sortedCards.get(sortedCards.size()-1).getRank().getValue();
-            pairMap.put(p.getId(),pair);
+            pair.high = sortedCards.get(sortedCards.size() - 1).getRank().getValue();
+            pairMap.put(p.getId(), pair);
         }
         Pair bestPair = null;
         for (Map.Entry<Integer, Pair> entry : pairMap.entrySet()) {
@@ -122,7 +184,7 @@ public class PokerService {
         if (tieBreakPlayers.size() == 0) {
             throw new RuntimeException("Ran out of players");
         }
-        return  tieBreakHighestKicker(tieBreakPlayers, 0);
+        return tieBreakHighestKicker(tieBreakPlayers, 0);
     }
 
     private Player tieBreakOnePair(List<Player> somePlayers) {
@@ -179,7 +241,12 @@ public class PokerService {
         if (tieBreakPlayers.size() == 0) {
             throw new RuntimeException("Ran out of players");
         }
-        return  tieBreakHighestKicker(tieBreakPlayers, 0);
+        Player p = tieBreakPlayers.get(0);
+        if (0 >= p.getSortedRemainingCards().size() - 1) {
+            // TODO split pot
+            return null;
+        }
+        return tieBreakHighestKicker(tieBreakPlayers, 0);
     }
 
     private Player tieBreakNoPair(List<Player> somePlayers) {
@@ -208,7 +275,12 @@ public class PokerService {
         if (tieBreakPlayers.size() == 0) {
             throw new RuntimeException("Ran out of tiebreaks");
         }
-        return  tieBreakHighestKicker(tieBreakPlayers, n + 1);
+        Player p = tieBreakPlayers.get(0);
+        if (n == p.getSortedRemainingCards().size() - 1) {
+            // TODO split pot
+            return null;
+        }
+        return tieBreakHighestKicker(tieBreakPlayers, n + 1);
     }
 
     private void debugHands() {
@@ -217,6 +289,10 @@ public class PokerService {
             System.out.println(player.getId() + " : " + getHand(player.getBestHand().getCards())
                     + " (" + player.getBestHand().getScoringCombination().getValue() + " : " + player.getBestHand().getScoringCombination().getName() + ") "
                     + getHand(player.getBestHand().getRemainingCards()));
+        }
+        if (winner == null) {
+            System.out.println("Split pot");
+            return;
         }
         System.out.println("Winner : " + winner.getId() + " with " + winner.getBestHand().getScoringCombination().getName());
     }
@@ -235,7 +311,7 @@ public class PokerService {
 
     private List<Card> sortCards(Set<Card> cards) {
         List<Card> sortedCards = new ArrayList<>(cards);
-        sortedCards.sort(Comparator.comparing(c -> ((Card) c).getSuit().getCode()).thenComparing(c -> ((Card) c).getRank().getValue()));
+        sortedCards.sort(Comparator.comparing(c -> ((Card) c).getRank()).reversed().thenComparing(c -> ((Card) c).getSuit().getCode()));
         return sortedCards;
     }
 
@@ -257,7 +333,6 @@ public class PokerService {
 
     private void setupOtherPlayers() {
         List<Card> cards = new ArrayList<>(deck);
-        Collections.shuffle(cards);
         int index = 0;
         for (Player player : players) {
             if (player.getId() == 1) {
@@ -269,6 +344,7 @@ public class PokerService {
     }
 
     private void setupPlayers(int playerCount) {
+        players.clear();
         for (int i = 0; i < playerCount; i++) {
             players.add(new Player(i + 1));
         }
@@ -288,7 +364,23 @@ public class PokerService {
         }
     }
 
+    private void setupCommunityCards(int communityCardCount) {
+        int cardsDealt = 0;
+        this.communityCards.clear();
+        Iterator<Card> iterator = deck.iterator();
+        while (iterator.hasNext()) {
+            Card card = iterator.next();
+            this.communityCards.add(card);
+            iterator.remove();
+            cardsDealt++;
+            if (cardsDealt == communityCardCount) {
+                break;
+            }
+        }
+    }
+
     private void setupCommunityCards(Set<Card> communityCards) {
+        this.communityCards.clear();
         for (Card playerCard : communityCards) {
             Iterator<Card> iterator = deck.iterator();
             while (iterator.hasNext()) {
@@ -312,7 +404,7 @@ public class PokerService {
         return deck;
     }
 
-    public Set<Card> getDeck() {
+    public List<Card> getDeck() {
         return deck;
     }
 

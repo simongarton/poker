@@ -1,11 +1,17 @@
 package com.simongarton.poker.services;
 
-import com.simongarton.poker.model.*;
+import com.simongarton.poker.model.Card;
+import com.simongarton.poker.model.Player;
+import com.simongarton.poker.model.Rank;
+import com.simongarton.poker.model.Suit;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -17,19 +23,41 @@ class PokerServiceTest {
 
     @Test
     void empty() {
-        BestHand scoringCombination = pokerService.calculate(Collections.emptySet(), 2, Collections.emptySet());
-        assertEquals(0, scoringCombination.getScoringCombination().getValue());
+        Player winner = pokerService.getWinner(Collections.emptySet(), 2, Collections.emptySet());
+        assertNotNull(winner);
     }
 
     @Test
-    void playGame() {
+    void playGameNoCards() {
         Set<Card> cards = new HashSet<>();
         Card card1 = new Card(Suit.CLUBS, Rank.THREE);
         Card card2 = new Card(Suit.SPADES, Rank.THREE);
         cards.add(card1);
         cards.add(card2);
-        BestHand scoringCombination = pokerService.calculate(cards, 2, Collections.emptySet());
-        assertNotNull(scoringCombination);
+        Player winner = pokerService.getWinner(cards, 2, Collections.emptySet());
+        assertNotNull(winner);
+    }
+
+    @Test
+    void playGameSomeCards() {
+        Set<Card> cards = new HashSet<>();
+        Card card1 = new Card(Suit.CLUBS, Rank.THREE);
+        Card card2 = new Card(Suit.SPADES, Rank.THREE);
+        cards.add(card1);
+        cards.add(card2);
+        Player winner = pokerService.getWinner(cards, 2, 3);
+        assertNotNull(winner);
+    }
+
+    @Test
+    void playSimulation() {
+        Set<Card> cards = new HashSet<>();
+        Card card1 = new Card(Suit.CLUBS, Rank.JACK);
+        Card card2 = new Card(Suit.SPADES, Rank.QUEEN);
+        cards.add(card1);
+        cards.add(card2);
+        double percentage = pokerService.getWinningPercentage(cards, 2, 3, 10000);
+        System.out.println(percentage);
     }
 
     @Test
@@ -45,8 +73,8 @@ class PokerServiceTest {
         Card card2 = new Card(Suit.SPADES, Rank.QUEEN);
         playerCards.add(card1);
         playerCards.add(card2);
-        pokerService.calculate(playerCards, 2, Collections.emptySet());
-        Set<Card> deck = pokerService.getDeck();
+        pokerService.getWinner(playerCards, 2, Collections.emptySet());
+        List<Card> deck = pokerService.getDeck();
         assertEquals(50, deck.size());
         Player player1 = pokerService.getPlayers().get(0);
         assertNotNull(player1);
@@ -69,8 +97,8 @@ class PokerServiceTest {
         communityCards.add(card3);
         communityCards.add(card4);
         communityCards.add(card5);
-        pokerService.calculate(playerCards, 2, communityCards);
-        Set<Card> deck = pokerService.getDeck();
+        pokerService.getWinner(playerCards, 2, communityCards);
+        List<Card> deck = pokerService.getDeck();
         assertEquals(47, deck.size());
         Player player1 = pokerService.getPlayers().get(0);
         assertNotNull(player1);

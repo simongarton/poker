@@ -1,12 +1,15 @@
 package com.simongarton.poker.model;
 
+import com.simongarton.poker.exceptions.ScoreHelperException;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
 
 @Getter
 @Setter
+@Slf4j
 public class ScoreHelper {
 
     private Map<Suit, Set<Card>> suitMap;
@@ -37,6 +40,18 @@ public class ScoreHelper {
     }
 
     public BestHand getResult() {
+        try {
+            return getUnsafeBestResult();
+        } catch (ScoreHelperException she) {
+            log.error(she.getMessage());
+            for (Card card : cards) {
+                System.out.println(card.getSuit().getName() + " " + card.getRank().getName());
+            }
+        }
+        throw new RuntimeException("Stopping");
+    }
+
+    private BestHand getUnsafeBestResult() {
         // TODO need wild card support
         // if (hasFiveOfAKind()) return ScoringCombination.FIVE_OF_A_KIND;
         Set<Card> cards = getStraightFlush();
@@ -74,7 +89,7 @@ public class ScoreHelper {
                 return new HashSet<>(entry.getValue());
             }
         }
-        throw new RuntimeException("Nope");
+        throw new ScoreHelperException("getOnePair()");
     }
 
     private Set<Card> getTwoPair() {
@@ -90,7 +105,7 @@ public class ScoreHelper {
                 }
             }
         }
-        throw new RuntimeException("Nope");
+        throw new ScoreHelperException("getTwoPair()");
     }
 
     private Set<Card> getThreeOfAKind() {
@@ -102,7 +117,7 @@ public class ScoreHelper {
                 return new HashSet<>(entry.getValue());
             }
         }
-        throw new RuntimeException("Nope");
+        throw new ScoreHelperException("getThreeOfAKind()");
     }
 
     private Set<Card> getFourOfAKind() {
@@ -114,7 +129,7 @@ public class ScoreHelper {
                 return new HashSet<>(entry.getValue());
             }
         }
-        throw new RuntimeException("Nope");
+        throw new ScoreHelperException("getFourOfAKind()");
     }
 
     private Set<Card> getStraight() {
@@ -145,7 +160,7 @@ public class ScoreHelper {
                 cards.clear();
             }
         }
-        throw new RuntimeException("Nope");
+        throw new ScoreHelperException("getStraight()");
     }
 
     private Set<Card> getFlush() {
@@ -163,7 +178,7 @@ public class ScoreHelper {
                 return bestCards;
             }
         }
-        throw new RuntimeException("Nope");
+        throw new ScoreHelperException("getFlush()");
     }
 
     private Set<Card> getFullHouse() {
@@ -189,8 +204,8 @@ public class ScoreHelper {
                 }
             }
         }
-        if (cards2.isEmpty()) throw new RuntimeException("Nope");
-        if (cards3.isEmpty()) throw new RuntimeException("Nope");
+        if (cards2.isEmpty()) throw new ScoreHelperException("getFullHouse() 2 cards");
+        if (cards3.isEmpty()) throw new ScoreHelperException("getFullHouse() 3 cards");
         Set<Card> cards = new HashSet<>(cards2);
         cards.addAll(cards3);
         return cards;
@@ -238,7 +253,7 @@ public class ScoreHelper {
     private boolean hasFullHouse() {
         int twos = 0;
         int threes = 0;
-        for (Map.Entry<Suit, Set<Card>> entry : suitMap.entrySet()) {
+        for (Map.Entry<Rank, Set<Card>> entry : rankMap.entrySet()) {
             if (entry.getValue().size() == 2) {
                 twos++;
             }

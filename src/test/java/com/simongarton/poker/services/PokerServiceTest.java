@@ -80,17 +80,4 @@ class PokerServiceTest {
         assertEquals(2, player1.getCards().size());
         assertEquals(3, pokerService.getCommunityCards().size());
     }
-
-    @Test
-    void getOtherCardScore() {
-        Set<Card> cards = new HashSet<>();
-        Card card1 = new Card(Suit.CLUBS, Rank.THREE);
-        Card card2 = new Card(Suit.SPADES, Rank.QUEEN);
-        assertEquals(0L,pokerService.getOtherCardScore(cards));
-        cards.add(card1);
-        assertEquals(805306368L,pokerService.getOtherCardScore(cards));
-        cards.add(card2);
-        assertEquals(3271557120L,pokerService.getOtherCardScore(cards));
-
-    }
 }

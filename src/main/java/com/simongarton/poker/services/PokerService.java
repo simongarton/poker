@@ -33,39 +33,198 @@ public class PokerService {
     }
 
     private Player getWinningPlayer() {
-        // TODO this is NOT working
-        players.sort(Comparator.comparing(p -> ((Player) p).getBestHand().getScoringCombination().getValue()).reversed().thenComparing(p -> this.getOtherCardScoreWithCommunity(((Player) p).getCards())).reversed());
-        return players.get(0);
-    }
-
-    private double getOtherCardScoreWithCommunity(Set<Card> playerCards) {
-        Set<Card> cards = new HashSet<>(playerCards);
-        cards.addAll(communityCards);
-        // TODO should remove scoring cards ...
-        return getOtherCardScore(cards);
-    }
-
-    public long getOtherCardScore(Set<Card> cards) {
-        List<Card> sortedCards = new ArrayList<>(cards);
-        sortedCards.sort(Comparator.comparing(c -> ((Card) c).getRank().getValue()).reversed());
-        double score = 0;
-        for (int n = 0; n < sortedCards.size(); n++) {
-            Card card = sortedCards.get(n);
-            score = score + Math.pow(16, 7-n) * card.getRank().getValue();
+        List<Player> somePlayers = new ArrayList<>(players);
+        somePlayers.sort(Comparator.comparing(p -> ((Player) p).getBestHand().getScoringCombination().getValue()).reversed());
+        int topScore = somePlayers.get(0).getBestHand().getScoringCombination().getValue();
+        Iterator<Player> iterator = somePlayers.iterator();
+        while(iterator.hasNext()) {
+            Player p = iterator.next();
+            if (p.getBestHand().getScoringCombination().getValue() != topScore) {
+                iterator.remove();;
+            }
         }
-        return Math.round(score);
+        if (somePlayers.size() == 1) {
+            return somePlayers.get(0);
+        }
+        return tieBreak(somePlayers);
+    }
+
+    private Player tieBreak(List<Player> somePlayers) {
+        ScoringCombination sc = somePlayers.get(0).getBestHand().getScoringCombination();
+        switch(sc) {
+            case NO_PAIR: return tieBreakNoPair(somePlayers);
+            case ONE_PAIR: return tieBreakOnePair(somePlayers);
+            case TWO_PAIR: return tieBreakTwoPair(somePlayers);
+            case THREE_OF_A_KIND: return tieBreakThreeOfAKind(somePlayers);
+            case STRAIGHT: return tieBreakStraight(somePlayers);
+            case FLUSH: return tieBreakFlush(somePlayers);
+            case FULL_HOUSE: return tieBreakFullHouse(somePlayers);
+            case FOUR_OF_A_KIND: return tieBreakFourOfAKind(somePlayers);
+            case STRAIGHT_FLUSH: return tieBreakStraightFlush(somePlayers);
+            default: throw new RuntimeException("No tiebreak");
+        }
+    }
+
+    private Player tieBreakFullHouse(List<Player> somePlayers) {
+        return tieBreakTwoLayers(somePlayers);
+    }
+
+    private static class Pair {
+        private int high;
+        private int low;
+    }
+
+    private Player tieBreakTwoPair(List<Player> somePlayers) {
+        return tieBreakTwoLayers(somePlayers);
+    }
+
+    private Player tieBreakTwoLayers(List<Player> somePlayers) {
+        Map<Integer, Pair> pairMap = new HashMap<>();
+        for (Player p : somePlayers) {
+            Pair pair = new Pair();
+            List<Card> sortedCards = new ArrayList<>(p.getCards());
+            sortedCards.sort(Comparator.comparing(c -> ((Card)c).getRank().getValue()));
+            pair.low = sortedCards.get(0).getRank().getValue();
+            pair.high = sortedCards.get(sortedCards.size()-1).getRank().getValue();
+            pairMap.put(p.getId(),pair);
+        }
+        Pair bestPair = null;
+        for (Map.Entry<Integer, Pair> entry : pairMap.entrySet()) {
+            if (bestPair == null) {
+                bestPair = entry.getValue();
+                continue;
+            }
+            if (bestPair.high > entry.getValue().high) {
+                continue;
+            }
+            if (bestPair.low > entry.getValue().low) {
+                continue;
+            }
+            bestPair = entry.getValue();
+        }
+        List<Player> tieBreakPlayers = new ArrayList<>(somePlayers);
+        Iterator<Player> iterator = tieBreakPlayers.iterator();
+        while (iterator.hasNext()) {
+            Player p = iterator.next();
+            Pair pair = pairMap.get(p.getId());
+            if (pair.high < bestPair.high) {
+                iterator.remove();
+                continue;
+            }
+            if (pair.low < bestPair.low) {
+                iterator.remove();
+                continue;
+            }
+        }
+        if (tieBreakPlayers.size() == 1) {
+            return tieBreakPlayers.get(0);
+        }
+        if (tieBreakPlayers.size() == 0) {
+            throw new RuntimeException("Ran out of players");
+        }
+        return  tieBreakHighestKicker(tieBreakPlayers, 0);
+    }
+
+    private Player tieBreakOnePair(List<Player> somePlayers) {
+        return tieBreakPlayedCards(somePlayers);
+    }
+
+    private Player tieBreakThreeOfAKind(List<Player> somePlayers) {
+        return tieBreakPlayedCards(somePlayers);
+    }
+
+    private Player tieBreakFourOfAKind(List<Player> somePlayers) {
+        return tieBreakPlayedCards(somePlayers);
+    }
+
+    private Player tieBreakStraight(List<Player> somePlayers) {
+        return tieBreakPlayedCards(somePlayers);
+    }
+
+    private Player tieBreakStraightFlush(List<Player> somePlayers) {
+        return tieBreakPlayedCards(somePlayers);
+    }
+
+    private Player tieBreakFlush(List<Player> somePlayers) {
+        return tieBreakPlayedCards(somePlayers);
+    }
+
+    private Player tieBreakPlayedCards(List<Player> somePlayers) {
+        List<Player> tieBreakPlayers = new ArrayList<>(somePlayers);
+        int highCard = 0;
+        for (Player p : tieBreakPlayers) {
+            for (Card c : p.getCards()) {
+                int high = c.getRank().getValue();
+                if (high > highCard) {
+                    highCard = high;
+                }
+            }
+        }
+        Iterator<Player> iterator = tieBreakPlayers.iterator();
+        while (iterator.hasNext()) {
+            Player p = iterator.next();
+            boolean hasHighCard = false;
+            for (Card c : p.getCards()) {
+                if (c.getRank().getValue() == highCard) {
+                    hasHighCard = true;
+                }
+            }
+            if (!hasHighCard) {
+                iterator.remove();
+            }
+        }
+        if (tieBreakPlayers.size() == 1) {
+            return tieBreakPlayers.get(0);
+        }
+        if (tieBreakPlayers.size() == 0) {
+            throw new RuntimeException("Ran out of players");
+        }
+        return  tieBreakHighestKicker(tieBreakPlayers, 0);
+    }
+
+    private Player tieBreakNoPair(List<Player> somePlayers) {
+        return tieBreakHighestKicker(somePlayers, 0);
+    }
+
+    private Player tieBreakHighestKicker(List<Player> somePlayers, int n) {
+        List<Player> tieBreakPlayers = new ArrayList<>(somePlayers);
+        int highKicker = 0;
+        for (Player p : tieBreakPlayers) {
+            int high = p.getSortedRemainingCards().get(n).getRank().getValue();
+            if (high > highKicker) {
+                highKicker = high;
+            }
+        }
+        Iterator<Player> iterator = tieBreakPlayers.iterator();
+        while (iterator.hasNext()) {
+            Player p = iterator.next();
+            if (p.getSortedRemainingCards().get(n).getRank().getValue() != highKicker) {
+                iterator.remove();
+            }
+        }
+        if (tieBreakPlayers.size() == 1) {
+            return tieBreakPlayers.get(0);
+        }
+        if (tieBreakPlayers.size() == 0) {
+            throw new RuntimeException("Ran out of tiebreaks");
+        }
+        return  tieBreakHighestKicker(tieBreakPlayers, n + 1);
     }
 
     private void debugHands() {
         System.out.println("Community : " + getHand(this.communityCards));
         for (Player player : players) {
-            System.out.println(player.getId() + " : " + getHand(player.getCards())
-                    + " (" + player.getBestHand().getScoringCombination().getValue() + " : " + player.getBestHand().getScoringCombination().getName() + ")");
+            System.out.println(player.getId() + " : " + getHand(player.getBestHand().getCards())
+                    + " (" + player.getBestHand().getScoringCombination().getValue() + " : " + player.getBestHand().getScoringCombination().getName() + ") "
+                    + getHand(player.getBestHand().getRemainingCards()));
         }
         System.out.println("Winner : " + winner.getId() + " with " + winner.getBestHand().getScoringCombination().getName());
     }
 
     private String getHand(Set<Card> cards) {
+        if (cards.isEmpty()) {
+            return "nothing";
+        }
         String hand = "";
         List<Card> sortedCards = sortCards(cards);
         for (Card card : sortedCards) {
@@ -93,8 +252,7 @@ public class PokerService {
         cards.addAll(communityCards);
 
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        BestHand bestHand = scoreHelper.getResult();
-        return bestHand;
+        return scoreHelper.getResult();
     }
 
     private void setupOtherPlayers() {

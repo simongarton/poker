@@ -16,4 +16,10 @@ public class Player {
     public Player(int id) {
         this.id = id;
     }
+
+    public List<Card> getSortedRemainingCards() {
+        List<Card> cards = new ArrayList<>(bestHand.getRemainingCards());
+        cards.sort(Comparator.comparing(c -> ((Card)c).getRank().getValue()).reversed());
+        return cards;
+    }
 }

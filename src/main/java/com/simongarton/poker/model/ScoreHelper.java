@@ -197,9 +197,9 @@ public class ScoreHelper {
     }
 
     public Set<Card> getRemainingCards(Set<Card> winningCards) {
-        Set<Card> allCards = new HashSet<>(cards);
-        winningCards.forEach(c -> allCards.remove(c));
-        return winningCards;
+        Set<Card> remainingCards = new HashSet<>(cards);
+        winningCards.forEach(remainingCards::remove);
+        return remainingCards;
     }
 
     private boolean hasStraight() {

@@ -17,9 +17,7 @@ public class PokerService {
     private List<Player> players = new ArrayList<>();
 
     public Result calculate(Set<Card> cards, int playerCount, Set<Card> communityCards) {
-        Result result = new Result();
-        result.setValue(0);
-        result.setExplanation("Uncalculated");
+        Result result = new Result(ScoringCombination.NO_PAIR);
 
         setupPlayers(playerCount);
 
@@ -28,23 +26,50 @@ public class PokerService {
         setupCommunityCards(communityCards);
         setupOtherPlayers();
 
+        scoreHands();
+
         debugHands();
         return result;
     }
 
     private void debugHands() {
-        System.out.println(getHand(this.communityCards));
+        System.out.println("Community : " + getHand(this.communityCards));
         for (Player player : players) {
-            System.out.println(player.getId() + " : " + getHand(player.getCards()));
+            System.out.println(player.getId() + " : " + getHand(player.getCards())
+                    + " (" + player.getScore().getValue() + " : " + player.getScore().getExplanation() + ")");
         }
     }
 
     private String getHand(Set<Card> cards) {
         String hand = "";
-        for (Card card : cards) {
+        List<Card> sortedCards = sortCards(cards);
+        for (Card card : sortedCards) {
             hand = hand + card.getRank().getName() + " " + card.getSuit().getName() + " ";
         }
         return hand.trim();
+    }
+
+    private List<Card> sortCards(Set<Card> cards) {
+        List<Card> sortedCards = new ArrayList<>(cards);
+        sortedCards.sort(Comparator.comparing(c -> ((Card) c).getSuit().getCode()).thenComparing(c -> ((Card) c).getRank().getValue()));
+        return sortedCards;
+    }
+
+    public void scoreHands() {
+        for (Player player : players) {
+            Result result = scoreHand(player.getCards(), communityCards);
+            player.setScore(result);
+        }
+    }
+
+    private Result scoreHand(Set<Card> playerCards, Set<Card> communityCards) {
+        Set<Card> cards = new HashSet<>();
+        cards.addAll(playerCards);
+        cards.addAll(communityCards);
+
+        ScoreHelper scoreHelper = new ScoreHelper(cards);
+        Result result = scoreHelper.getResult();
+        return result;
     }
 
     private void setupOtherPlayers() {
@@ -106,6 +131,10 @@ public class PokerService {
 
     public Set<Card> getDeck() {
         return deck;
+    }
+
+    public Set<Card> getCommunityCards() {
+        return communityCards;
     }
 
     public List<Player> getPlayers() {

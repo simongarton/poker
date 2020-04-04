@@ -9,4 +9,9 @@ public class Result {
 
     private int value;
     private String explanation;
+
+    public Result(ScoringCombination combination) {
+        value = combination.getValue();
+        explanation = combination.getName();
+    }
 }

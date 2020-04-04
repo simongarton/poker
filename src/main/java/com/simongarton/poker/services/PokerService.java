@@ -15,6 +15,7 @@ public class PokerService {
     private Set<Card> deck;
     private Set<Card> communityCards = new HashSet<>();
     private List<Player> players = new ArrayList<>();
+    private Player winner;
 
     public ScoringCombination calculate(Set<Card> cards, int playerCount, Set<Card> communityCards) {
         ScoringCombination result = ScoringCombination.NO_PAIR;
@@ -27,9 +28,33 @@ public class PokerService {
         setupOtherPlayers();
 
         scoreHands();
+        winner = getWinningPlayer();
 
         debugHands();
         return result;
+    }
+
+    private Player getWinningPlayer() {
+        players.sort(Comparator.comparing(p -> ((Player) p).getScore().getValue()).reversed().thenComparing(p -> this.getOtherCardScoreWithCommunity(((Player) p).getCards())).reversed());
+        return players.get(0);
+    }
+
+    private double getOtherCardScoreWithCommunity(Set<Card> playerCards) {
+        Set<Card> cards = new HashSet<>(playerCards);
+        cards.addAll(communityCards);
+        // TODO should remove scoring cards ...
+        return getOtherCardScore(cards);
+    }
+
+    public long getOtherCardScore(Set<Card> cards) {
+        List<Card> sortedCards = new ArrayList<>(cards);
+        sortedCards.sort(Comparator.comparing(c -> ((Card) c).getRank().getValue()).reversed());
+        double score = 0;
+        for (int n = 0; n < sortedCards.size(); n++) {
+            Card card = sortedCards.get(n);
+            score = score + Math.pow(16, 7-n) * card.getRank().getValue();
+        }
+        return Math.round(score);
     }
 
     private void debugHands() {
@@ -38,6 +63,7 @@ public class PokerService {
             System.out.println(player.getId() + " : " + getHand(player.getCards())
                     + " (" + player.getScore().getValue() + " : " + player.getScore().getName() + ")");
         }
+        System.out.println("Winner : " + winner.getId() + " with " + winner.getScore().getName());
     }
 
     private String getHand(Set<Card> cards) {

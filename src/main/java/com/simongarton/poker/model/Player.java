@@ -3,8 +3,7 @@ package com.simongarton.poker.model;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Getter
 public class Player {

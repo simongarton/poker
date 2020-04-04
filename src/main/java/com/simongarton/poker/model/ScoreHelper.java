@@ -99,7 +99,7 @@ public class ScoreHelper {
         }
         return (twos >= 1) && (threes >= 1);
     }
-    
+
     private boolean hasNOfAKind(int n) {
         for (Map.Entry<Rank, Set<Card>> entry : rankMap.entrySet()) {
             if (entry.getValue().size() == n) {

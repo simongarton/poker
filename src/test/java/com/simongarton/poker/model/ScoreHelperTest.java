@@ -16,7 +16,7 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.CLUBS, Rank.THREE));
         cards.add(new Card(Suit.CLUBS, Rank.FOUR));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        ScoringCombination result = scoreHelper.getResult();
+        ScoringCombination result = scoreHelper.getResult().getScoringCombination();;
         assertEquals(NO_PAIR, result);
     }
 
@@ -27,7 +27,7 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.CLUBS, Rank.FOUR));
         cards.add(new Card(Suit.SPADES, Rank.FOUR));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        ScoringCombination result = scoreHelper.getResult();
+        ScoringCombination result = scoreHelper.getResult().getScoringCombination();;
         assertEquals(ONE_PAIR, result);
     }
 
@@ -39,7 +39,7 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.SPADES, Rank.THREE));
         cards.add(new Card(Suit.SPADES, Rank.FOUR));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        ScoringCombination result = scoreHelper.getResult();
+        ScoringCombination result = scoreHelper.getResult().getScoringCombination();;
         assertEquals(TWO_PAIR, result);
     }
 
@@ -51,7 +51,7 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.HEARTS, Rank.FOUR));
         cards.add(new Card(Suit.SPADES, Rank.FOUR));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        ScoringCombination result = scoreHelper.getResult();
+        ScoringCombination result = scoreHelper.getResult().getScoringCombination();;
         assertEquals(THREE_OF_A_KIND, result);
     }
 
@@ -64,7 +64,7 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.SPADES, Rank.SIX));
         cards.add(new Card(Suit.SPADES, Rank.SEVEN));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        ScoringCombination result = scoreHelper.getResult();
+        ScoringCombination result = scoreHelper.getResult().getScoringCombination();;
         assertEquals(STRAIGHT, result);
     }
 
@@ -77,7 +77,7 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.CLUBS, Rank.SIX));
         cards.add(new Card(Suit.CLUBS, Rank.SEVEN));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        ScoringCombination result = scoreHelper.getResult();
+        ScoringCombination result = scoreHelper.getResult().getScoringCombination();;
         assertEquals(FLUSH, result);
     }
 
@@ -90,7 +90,7 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.SPADES, Rank.SIX));
         cards.add(new Card(Suit.SPADES, Rank.SEVEN));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        ScoringCombination result = scoreHelper.getResult();
+        ScoringCombination result = scoreHelper.getResult().getScoringCombination();;
         assertEquals(FULL_HOUSE, result);
     }
 
@@ -103,7 +103,7 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.SPADES, Rank.THREE));
         cards.add(new Card(Suit.SPADES, Rank.SEVEN));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        ScoringCombination result = scoreHelper.getResult();
+        ScoringCombination result = scoreHelper.getResult().getScoringCombination();;
         assertEquals(FOUR_OF_A_KIND, result);
     }
 
@@ -116,7 +116,7 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.CLUBS, Rank.SIX));
         cards.add(new Card(Suit.CLUBS, Rank.SEVEN));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        ScoringCombination result = scoreHelper.getResult();
+        ScoringCombination result = scoreHelper.getResult().getScoringCombination();;
         assertEquals(STRAIGHT_FLUSH, result);
     }
 }

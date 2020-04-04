@@ -11,7 +11,7 @@ public class Player {
     private int id;
     private Set<Card> cards = new HashSet<>();
     @Setter
-    private ScoringCombination score;
+    private BestHand bestHand;
 
     public Player(int id) {
         this.id = id;

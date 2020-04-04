@@ -17,9 +17,7 @@ public class PokerService {
     private List<Player> players = new ArrayList<>();
     private Player winner;
 
-    public ScoringCombination calculate(Set<Card> cards, int playerCount, Set<Card> communityCards) {
-        ScoringCombination result = ScoringCombination.NO_PAIR;
-
+    public BestHand calculate(Set<Card> cards, int playerCount, Set<Card> communityCards) {
         setupPlayers(playerCount);
 
         deck = getFullDeck();
@@ -31,11 +29,12 @@ public class PokerService {
         winner = getWinningPlayer();
 
         debugHands();
-        return result;
+        return winner.getBestHand();
     }
 
     private Player getWinningPlayer() {
-        players.sort(Comparator.comparing(p -> ((Player) p).getScore().getValue()).reversed().thenComparing(p -> this.getOtherCardScoreWithCommunity(((Player) p).getCards())).reversed());
+        // TODO this is NOT working
+        players.sort(Comparator.comparing(p -> ((Player) p).getBestHand().getScoringCombination().getValue()).reversed().thenComparing(p -> this.getOtherCardScoreWithCommunity(((Player) p).getCards())).reversed());
         return players.get(0);
     }
 
@@ -61,9 +60,9 @@ public class PokerService {
         System.out.println("Community : " + getHand(this.communityCards));
         for (Player player : players) {
             System.out.println(player.getId() + " : " + getHand(player.getCards())
-                    + " (" + player.getScore().getValue() + " : " + player.getScore().getName() + ")");
+                    + " (" + player.getBestHand().getScoringCombination().getValue() + " : " + player.getBestHand().getScoringCombination().getName() + ")");
         }
-        System.out.println("Winner : " + winner.getId() + " with " + winner.getScore().getName());
+        System.out.println("Winner : " + winner.getId() + " with " + winner.getBestHand().getScoringCombination().getName());
     }
 
     private String getHand(Set<Card> cards) {
@@ -83,19 +82,19 @@ public class PokerService {
 
     public void scoreHands() {
         for (Player player : players) {
-            ScoringCombination result = scoreHand(player.getCards(), communityCards);
-            player.setScore(result);
+            BestHand result = scoreHand(player.getCards(), communityCards);
+            player.setBestHand(result);
         }
     }
 
-    private ScoringCombination scoreHand(Set<Card> playerCards, Set<Card> communityCards) {
+    private BestHand scoreHand(Set<Card> playerCards, Set<Card> communityCards) {
         Set<Card> cards = new HashSet<>();
         cards.addAll(playerCards);
         cards.addAll(communityCards);
 
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        ScoringCombination result = scoreHelper.getResult();
-        return result;
+        BestHand bestHand = scoreHelper.getResult();
+        return bestHand;
     }
 
     private void setupOtherPlayers() {

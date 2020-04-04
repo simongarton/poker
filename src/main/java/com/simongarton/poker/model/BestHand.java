@@ -11,5 +11,12 @@ import java.util.Set;
 public class BestHand {
 
     private ScoringCombination scoringCombination;
-    private Set<Card> cards = new HashSet<>();
+    private Set<Card> cards;
+    private Set<Card> remainingCards;
+
+    public BestHand(ScoringCombination scoringCombination, Set<Card> cards, Set<Card> remainingCards) {
+        this.scoringCombination = scoringCombination;
+        this.cards = new HashSet<>(cards);
+        this.remainingCards = new HashSet<>(remainingCards);
+    }
 }

@@ -1,10 +1,13 @@
 package com.simongarton.poker.model;
 
+import lombok.Getter;
+
+@Getter
 public enum Suit {
     CLUBS("Clubs", "C"),
     DIAMONDS("Diamonds", "D"),
     HEARTS("Hearts", "H"),
-    Spades("Spades", "S");
+    SPADES("Spades", "S");
 
     private String name;
     private String code;
@@ -13,4 +16,5 @@ public enum Suit {
         this.name = name;
         this.code = code;
     }
+
 }

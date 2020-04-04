@@ -17,19 +17,13 @@ class PokerServiceTest {
 
     @Test
     void calculate() {
-        Result result = pokerService.calculate(Collections.emptySet(), 2, Collections.emptySet());
-        assertEquals(0, result.getValue());
+        ScoringCombination scoringCombination = pokerService.calculate(Collections.emptySet(), 2, Collections.emptySet());
+        assertEquals(0, scoringCombination.getValue());
     }
 
     @Test
     void getFullDeck() {
         Set<Card> deck = pokerService.getFullDeck();
-        assertEquals(52, deck.size());
-    }
-
-    @Test
-    void getDeck() {
-        Set<Card> deck = pokerService.getDeck();
         assertEquals(52, deck.size());
     }
 
@@ -40,7 +34,7 @@ class PokerServiceTest {
         Card card2 = new Card(Suit.SPADES, Rank.QUEEN);
         playerCards.add(card1);
         playerCards.add(card2);
-        Result result = pokerService.calculate(playerCards, 2, Collections.emptySet());
+        ScoringCombination scoringCombination = pokerService.calculate(playerCards, 2, Collections.emptySet());
         Set<Card> deck = pokerService.getDeck();
         assertEquals(50, deck.size());
         Player player1 = pokerService.getPlayers().get(0);
@@ -64,7 +58,7 @@ class PokerServiceTest {
         communityCards.add(card3);
         communityCards.add(card4);
         communityCards.add(card5);
-        Result result = pokerService.calculate(playerCards, 2, communityCards);
+        ScoringCombination scoringCombination = pokerService.calculate(playerCards, 2, communityCards);
         Set<Card> deck = pokerService.getDeck();
         assertEquals(47, deck.size());
         Player player1 = pokerService.getPlayers().get(0);

@@ -13,8 +13,9 @@ public enum ScoringCombination {
     FLUSH("Flush", 5),
     FULL_HOUSE("Full House", 6),
     FOUR_OF_A_KIND("Four of a kind", 7),
-    STRAIGHT_FLUSH("Straight flush", 8),
-    FIVE_OF_A_KIND("Five of a kind", 9);
+    STRAIGHT_FLUSH("Straight flush", 8);
+    // TODO need to add wild cards to support this.
+    //FIVE_OF_A_KIND("Five of a kind", 9);
 
     private String name;
     private int value;

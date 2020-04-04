@@ -1,12 +1,11 @@
 package com.simongarton.poker.model;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static com.simongarton.poker.model.ScoringCombination.ONE_PAIR;
+import static com.simongarton.poker.model.ScoringCombination.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ScoreHelperTest {
@@ -17,9 +16,8 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.CLUBS, Rank.THREE));
         cards.add(new Card(Suit.CLUBS, Rank.FOUR));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        Result result = scoreHelper.getResult();
-        assertEquals(0, result.getValue());
-        assertEquals("No pair", result.getExplanation());
+        ScoringCombination result = scoreHelper.getResult();
+        assertEquals(NO_PAIR, result);
     }
 
     @Test
@@ -29,7 +27,7 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.CLUBS, Rank.FOUR));
         cards.add(new Card(Suit.SPADES, Rank.FOUR));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        Result result = scoreHelper.getResult();
+        ScoringCombination result = scoreHelper.getResult();
         assertEquals(ONE_PAIR, result);
     }
 
@@ -41,9 +39,8 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.SPADES, Rank.THREE));
         cards.add(new Card(Suit.SPADES, Rank.FOUR));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        Result result = scoreHelper.getResult();
-        assertEquals(2, result.getValue());
-        assertEquals("Two pairs", result.getExplanation());
+        ScoringCombination result = scoreHelper.getResult();
+        assertEquals(TWO_PAIR, result);
     }
 
     @Test
@@ -54,8 +51,72 @@ class ScoreHelperTest {
         cards.add(new Card(Suit.HEARTS, Rank.FOUR));
         cards.add(new Card(Suit.SPADES, Rank.FOUR));
         ScoreHelper scoreHelper = new ScoreHelper(cards);
-        Result result = scoreHelper.getResult();
-        assertEquals(2, result.getValue());
-        assertEquals("Two pairs", result.getExplanation());
+        ScoringCombination result = scoreHelper.getResult();
+        assertEquals(THREE_OF_A_KIND, result);
+    }
+
+    @Test
+    void testStraight() {
+        Set<Card> cards = new HashSet<>();
+        cards.add(new Card(Suit.CLUBS, Rank.THREE));
+        cards.add(new Card(Suit.CLUBS, Rank.FOUR));
+        cards.add(new Card(Suit.HEARTS, Rank.FIVE));
+        cards.add(new Card(Suit.SPADES, Rank.SIX));
+        cards.add(new Card(Suit.SPADES, Rank.SEVEN));
+        ScoreHelper scoreHelper = new ScoreHelper(cards);
+        ScoringCombination result = scoreHelper.getResult();
+        assertEquals(STRAIGHT, result);
+    }
+
+    @Test
+    void testFlush() {
+        Set<Card> cards = new HashSet<>();
+        cards.add(new Card(Suit.CLUBS, Rank.THREE));
+        cards.add(new Card(Suit.CLUBS, Rank.FOUR));
+        cards.add(new Card(Suit.CLUBS, Rank.EIGHT));
+        cards.add(new Card(Suit.CLUBS, Rank.SIX));
+        cards.add(new Card(Suit.CLUBS, Rank.SEVEN));
+        ScoreHelper scoreHelper = new ScoreHelper(cards);
+        ScoringCombination result = scoreHelper.getResult();
+        assertEquals(FLUSH, result);
+    }
+
+    @Test
+    void testFullHouse() {
+        Set<Card> cards = new HashSet<>();
+        cards.add(new Card(Suit.CLUBS, Rank.THREE));
+        cards.add(new Card(Suit.CLUBS, Rank.FOUR));
+        cards.add(new Card(Suit.SPADES, Rank.EIGHT));
+        cards.add(new Card(Suit.SPADES, Rank.SIX));
+        cards.add(new Card(Suit.SPADES, Rank.SEVEN));
+        ScoreHelper scoreHelper = new ScoreHelper(cards);
+        ScoringCombination result = scoreHelper.getResult();
+        assertEquals(FULL_HOUSE, result);
+    }
+
+    @Test
+    void testFourOfAKind() {
+        Set<Card> cards = new HashSet<>();
+        cards.add(new Card(Suit.CLUBS, Rank.THREE));
+        cards.add(new Card(Suit.DIAMONDS, Rank.THREE));
+        cards.add(new Card(Suit.HEARTS, Rank.THREE));
+        cards.add(new Card(Suit.SPADES, Rank.THREE));
+        cards.add(new Card(Suit.SPADES, Rank.SEVEN));
+        ScoreHelper scoreHelper = new ScoreHelper(cards);
+        ScoringCombination result = scoreHelper.getResult();
+        assertEquals(FOUR_OF_A_KIND, result);
+    }
+
+    @Test
+    void testStraightFlush() {
+        Set<Card> cards = new HashSet<>();
+        cards.add(new Card(Suit.CLUBS, Rank.THREE));
+        cards.add(new Card(Suit.CLUBS, Rank.FOUR));
+        cards.add(new Card(Suit.CLUBS, Rank.FIVE));
+        cards.add(new Card(Suit.CLUBS, Rank.SIX));
+        cards.add(new Card(Suit.CLUBS, Rank.SEVEN));
+        ScoreHelper scoreHelper = new ScoreHelper(cards);
+        ScoringCombination result = scoreHelper.getResult();
+        assertEquals(STRAIGHT_FLUSH, result);
     }
 }

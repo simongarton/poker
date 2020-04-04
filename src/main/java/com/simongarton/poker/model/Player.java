@@ -12,7 +12,7 @@ public class Player {
     private int id;
     private Set<Card> cards = new HashSet<>();
     @Setter
-    private Result score;
+    private ScoringCombination score;
 
     public Player(int id) {
         this.id = id;

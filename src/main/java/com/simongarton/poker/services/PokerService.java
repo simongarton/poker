@@ -1,5 +1,6 @@
 package com.simongarton.poker.services;
 
+import com.simongarton.poker.exceptions.HandException;
 import com.simongarton.poker.model.*;
 import org.springframework.stereotype.Service;
 
@@ -28,6 +29,32 @@ public class PokerService {
         List<String> tracking = new ArrayList<>();
         for (int i = 1; i <= iterations; i++) {
             Player p = getWinner(cards, playerCount, communityCardCount);
+            if (p == null) {
+                wins += 0.5;
+            } else {
+                if (p.getId() == 1) {
+                    wins++;
+                }
+            }
+            String line = i + "," + String.format("%.0f", wins) + "," + String.format("%.3f", wins / i);
+            if (debug) tracking.add(line);
+        }
+        if (debug) {
+            try {
+                Files.write(Paths.get("output.csv"), tracking, Charset.defaultCharset()); //tracking.forEach(System.out::println);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return 1.0 * wins / iterations;
+    }
+
+    public double getWinningPercentage(Set<Card> cards, int playerCount, Set<Card> communityCards, int iterations) {
+
+        double wins = 0;
+        List<String> tracking = new ArrayList<>();
+        for (int i = 1; i <= iterations; i++) {
+            Player p = getWinner(cards, playerCount, communityCards);
             if (p == null) {
                 wins += 0.5;
             } else {
@@ -129,6 +156,47 @@ public class PokerService {
 
     private Player tieBreakFullHouse(List<Player> somePlayers) {
         return tieBreakTwoLayers(somePlayers);
+    }
+
+    public HandResponse getHandResponse(String cards, String communityCards, int playerCount, Integer iterations) {
+        Set<Card> actualCards = figureOutCards(cards);
+        Set<Card> actualCommunityCards = figureOutCards(communityCards);
+        for (Card card : actualCards) {
+            if (actualCommunityCards.contains(card)) {
+                throw new HandException("Invalid hand, duplicated cards");
+            }
+        }
+        if (iterations == null) {
+            iterations = 1000;
+        }
+        HandResponse handResponse = new HandResponse();
+        handResponse.setIterations(iterations);
+        handResponse.setHand(new ArrayList<>(actualCards));
+        handResponse.setCommunity(new ArrayList<>(actualCommunityCards));
+        handResponse.setPlayerCount(playerCount);
+        if (actualCommunityCards.size() == 0) {
+            handResponse.setCommunityCardCount(3);
+            handResponse.setPercentage(getWinningPercentage(actualCards, playerCount, 3, iterations));
+        } else {
+            handResponse.setCommunityCardCount(actualCommunityCards.size());
+            handResponse.setPercentage(getWinningPercentage(actualCards, playerCount, actualCommunityCards, iterations));
+            BestHand bestHand = scoreHand(actualCards, actualCommunityCards);
+            handResponse.setScoringCombination(bestHand.getScoringCombination().getName());
+        }
+        return handResponse;
+    }
+
+    private Set<Card> figureOutCards(String cards) {
+        Set<Card> actualCards = new HashSet<>();
+        if (cards == null) {
+            return actualCards;
+        }
+        String[] cardList = cards.split(",");
+        for (String card : cardList) {
+            Card actualCard = new Card(card);
+            actualCards.add(actualCard);
+        }
+        return actualCards;
     }
 
     private static class Pair {

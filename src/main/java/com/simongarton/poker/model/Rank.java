@@ -1,5 +1,6 @@
 package com.simongarton.poker.model;
 
+import com.simongarton.poker.exceptions.CardFormatException;
 import lombok.Getter;
 
 import java.util.ArrayList;
@@ -36,5 +37,17 @@ public enum Rank {
         List<Rank> ranks = new ArrayList<>(Arrays.asList(Rank.values()));
         ranks.sort(Comparator.comparing(Rank::getValue));
         return ranks;
+    }
+
+    public static Rank findRank(String r) {
+        if (r.equals("10")) {
+            return TEN;
+        }
+        for (Rank rank : values()) {
+            if (rank.getName().substring(0,1).equalsIgnoreCase(r)) {
+                return rank;
+            }
+        }
+        throw new CardFormatException("Could not find rank " + r);
     }
 }

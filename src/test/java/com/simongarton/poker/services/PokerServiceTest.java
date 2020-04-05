@@ -1,9 +1,6 @@
 package com.simongarton.poker.services;
 
-import com.simongarton.poker.model.Card;
-import com.simongarton.poker.model.Player;
-import com.simongarton.poker.model.Rank;
-import com.simongarton.poker.model.Suit;
+import com.simongarton.poker.model.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -25,41 +22,41 @@ class PokerServiceTest {
     @Test
     void empty() {
         Player winner = pokerService.getWinner(Collections.emptySet(), 2, Collections.emptySet());
-        assertNotNull(winner);
+        assertNull(winner);
     }
 
-    @Test
-    void mapOutTwoCards() {
-        Set<Card> cards = new HashSet<>();
-        Card card1;
-        Card card2;
-        List<String> lines = new ArrayList<>();
-        String line = ",";
-        for (Rank r1 : Rank.values()) {
-            line = line + r1.getName() + ",";
-        }
-        lines.add(line);
-
-        for (Rank r1 : Rank.values()) {
-            line = r1.getName() + ",";
-            for (Rank r2 : Rank.values()) {
-                card1 = new Card(Suit.CLUBS, r1);
-                card2 = new Card(Suit.SPADES, r2);
-                cards.clear();
-                cards.add(card1);
-                cards.add(card2);
-                double percentage = pokerService.getWinningPercentage(cards, 5, 3, 10000);
-                System.out.println(card1.getCaption() + " + " + card2.getCaption() + " = " + percentage);
-                line = line + percentage + ",";
-            }
-            lines.add(line);
-        }
-        try {
-            Files.write(Paths.get("two_cards.csv"), lines, Charset.defaultCharset());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+//    @Test
+//    void mapOutTwoCards() {
+//        Set<Card> cards = new HashSet<>();
+//        Card card1;
+//        Card card2;
+//        List<String> lines = new ArrayList<>();
+//        String line = ",";
+//        for (Rank r1 : Rank.values()) {
+//            line = line + r1.getName() + ",";
+//        }
+//        lines.add(line);
+//
+//        for (Rank r1 : Rank.values()) {
+//            line = r1.getName() + ",";
+//            for (Rank r2 : Rank.values()) {
+//                card1 = new Card(Suit.CLUBS, r1);
+//                card2 = new Card(Suit.SPADES, r2);
+//                cards.clear();
+//                cards.add(card1);
+//                cards.add(card2);
+//                double percentage = pokerService.getWinningPercentage(cards, 5, 3, 10000);
+//                System.out.println(card1.getCaption() + " + " + card2.getCaption() + " = " + percentage);
+//                line = line + percentage + ",";
+//            }
+//            lines.add(line);
+//        }
+//        try {
+//            Files.write(Paths.get("two_cards.csv"), lines, Charset.defaultCharset());
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     @Test
     void playGameNoCards() {
@@ -141,5 +138,168 @@ class PokerServiceTest {
         assertTrue(player1.getCards().contains(card2));
         assertEquals(2, player1.getCards().size());
         assertEquals(3, pokerService.getCommunityCards().size());
+    }
+
+    @Test
+    void testTieBreakerOnePair() {
+        Set<Card> player1Cards = new HashSet<>();
+        Set<Card> player2Cards = new HashSet<>();
+        Set<Card> communityCards = new HashSet<>();
+        Card card1 = new Card(Suit.CLUBS, Rank.THREE);
+        Card card2 = new Card(Suit.SPADES, Rank.THREE);
+        Card card3 = new Card(Suit.SPADES, Rank.QUEEN);
+        Card card4 = new Card(Suit.HEARTS, Rank.THREE);
+        Card card5 = new Card(Suit.DIAMONDS, Rank.THREE);
+        Card card6 = new Card(Suit.HEARTS, Rank.JACK);
+        Card card7 = new Card(Suit.HEARTS, Rank.KING);
+        player1Cards.add(card1);
+        player1Cards.add(card2);
+        player1Cards.add(card3);
+        player2Cards.add(card4);
+        player2Cards.add(card5);
+        player2Cards.add(card6);
+        List<Set<Card>> players = new ArrayList<>();
+        players.add(player1Cards);
+        players.add(player2Cards);
+        Player winner = pokerService.getWinner(players, communityCards);
+        assertNotNull(winner);
+        assertEquals(1, winner.getId());
+        player2Cards.clear();
+        player2Cards.add(card4);
+        player2Cards.add(card5);
+        player2Cards.add(card7);
+        players = new ArrayList<>();
+        players.add(player1Cards);
+        players.add(player2Cards);
+        winner = pokerService.getWinner(players, communityCards);
+
+        assertNotNull(winner);
+        assertEquals(2, winner.getId());
+    }
+
+    @Test
+    void testTieBreakerOnePairDifferent() {
+        Set<Card> player1Cards = new HashSet<>();
+        Set<Card> player2Cards = new HashSet<>();
+        Set<Card> communityCards = new HashSet<>();
+        Card card1 = new Card(Suit.CLUBS, Rank.THREE);
+        Card card2 = new Card(Suit.SPADES, Rank.THREE);
+        Card card3 = new Card(Suit.SPADES, Rank.QUEEN);
+        Card card4 = new Card(Suit.HEARTS, Rank.FOUR);
+        Card card5 = new Card(Suit.DIAMONDS, Rank.FOUR);
+        Card card6 = new Card(Suit.HEARTS, Rank.KING);
+        player1Cards.add(card1);
+        player1Cards.add(card2);
+        player1Cards.add(card3);
+        player2Cards.add(card4);
+        player2Cards.add(card5);
+        player2Cards.add(card6);
+        List<Set<Card>> players = new ArrayList<>();
+        players.add(player1Cards);
+        players.add(player2Cards);
+        Player winner = pokerService.getWinner(players, communityCards);
+        assertNotNull(winner);
+        assertEquals(2, winner.getId());
+    }
+
+    @Test
+    void testTieBreakerTwoPairDifferent() {
+        Set<Card> player1Cards = new HashSet<>();
+        Set<Card> player2Cards = new HashSet<>();
+        Set<Card> communityCards = new HashSet<>();
+        Card card1 = new Card(Suit.CLUBS, Rank.THREE);
+        Card card2 = new Card(Suit.SPADES, Rank.THREE);
+        Card card3 = new Card(Suit.CLUBS, Rank.FOUR);
+        Card card4 = new Card(Suit.SPADES, Rank.FOUR);
+        Card card5 = new Card(Suit.SPADES, Rank.QUEEN);
+        Card card6 = new Card(Suit.HEARTS, Rank.FOUR);
+        Card card7 = new Card(Suit.DIAMONDS, Rank.FOUR);
+        Card card8 = new Card(Suit.HEARTS, Rank.FIVE);
+        Card card9 = new Card(Suit.DIAMONDS, Rank.FIVE);
+        Card card10 = new Card(Suit.HEARTS, Rank.THREE);
+        player1Cards.add(card1);
+        player1Cards.add(card2);
+        player1Cards.add(card3);
+        player1Cards.add(card4);
+        player1Cards.add(card5);
+        player2Cards.add(card6);
+        player2Cards.add(card7);
+        player2Cards.add(card8);
+        player2Cards.add(card9);
+        player2Cards.add(card10);
+        List<Set<Card>> players = new ArrayList<>();
+        players.add(player1Cards);
+        players.add(player2Cards);
+        Player winner = pokerService.getWinner(players, communityCards);
+        assertNotNull(winner);
+        assertEquals(1, winner.getId());
+    }
+
+    @Test
+    void testTieBreakerOnePairTwoLevel() {
+        Set<Card> player1Cards = new HashSet<>();
+        Set<Card> player2Cards = new HashSet<>();
+        Set<Card> communityCards = new HashSet<>();
+        Card card1 = new Card(Suit.CLUBS, Rank.THREE);
+        Card card2 = new Card(Suit.SPADES, Rank.THREE);
+        Card card3 = new Card(Suit.SPADES, Rank.QUEEN);
+        Card card4 = new Card(Suit.HEARTS, Rank.THREE);
+        Card card5 = new Card(Suit.DIAMONDS, Rank.THREE);
+        Card card6 = new Card(Suit.HEARTS, Rank.QUEEN);
+        Card card7 = new Card(Suit.HEARTS, Rank.KING);
+        Card card8 = new Card(Suit.HEARTS, Rank.JACK);
+        player1Cards.add(card1);
+        player1Cards.add(card2);
+        player1Cards.add(card3);
+        player1Cards.add(card8);
+        player2Cards.add(card4);
+        player2Cards.add(card5);
+        player2Cards.add(card6);
+        player2Cards.add(card7);
+        List<Set<Card>> players = new ArrayList<>();
+        players.add(player1Cards);
+        players.add(player2Cards);
+        Player winner = pokerService.getWinner(players, communityCards);
+        assertNotNull(winner);
+        assertEquals(2, winner.getId());
+    }
+
+    @Test
+    void testTieBreakerOnePairSplit() {
+        Set<Card> player1Cards = new HashSet<>();
+        Set<Card> player2Cards = new HashSet<>();
+        Set<Card> communityCards = new HashSet<>();
+        Card card1 = new Card(Suit.CLUBS, Rank.THREE);
+        Card card2 = new Card(Suit.SPADES, Rank.THREE);
+        Card card3 = new Card(Suit.SPADES, Rank.QUEEN);
+        Card card4 = new Card(Suit.HEARTS, Rank.THREE);
+        Card card5 = new Card(Suit.DIAMONDS, Rank.THREE);
+        Card card6 = new Card(Suit.HEARTS, Rank.QUEEN);
+        Card card7 = new Card(Suit.HEARTS, Rank.KING);
+        Card card8 = new Card(Suit.DIAMONDS, Rank.KING);
+        player1Cards.add(card1);
+        player1Cards.add(card2);
+        player1Cards.add(card3);
+        player1Cards.add(card8);
+        player2Cards.add(card4);
+        player2Cards.add(card5);
+        player2Cards.add(card6);
+        player2Cards.add(card7);
+        List<Set<Card>> players = new ArrayList<>();
+        players.add(player1Cards);
+        players.add(player2Cards);
+        Player winner = pokerService.getWinner(players, communityCards);
+        assertNull(winner);
+    }
+
+    @Test
+    void getHandResponse() {
+        int playerCount = 2;
+        int iterations = 100;
+        String cards = "JS,JH";
+        String communityCards = "KH,KS,KD";
+        HandResponse handResponse = pokerService.getHandResponse(cards, communityCards, playerCount, iterations );
+        assertNotNull(handResponse);
+        assertEquals("Full House", handResponse.getScoringCombination());
     }
 }

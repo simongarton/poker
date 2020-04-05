@@ -90,6 +90,24 @@ public class PokerService {
         return winner;
     }
 
+    public Player getWinner(List<Set<Card>> playerCards, Set<Card> communityCards) {
+        setupPlayers(2);
+        setupDeck();
+
+        int playerIndex = 0;
+        for (Set<Card> cards : playerCards) {
+            setupPlayer(cards, playerIndex++);
+        }
+
+        setupCommunityCards(communityCards);
+
+        scoreHands();
+        winner = getWinningPlayer();
+
+        if (debug) debugHands();
+        return winner;
+    }
+
     private void setupDeck() {
         deck = new ArrayList<>(getFullDeck());
         Collections.shuffle(deck, new Random());
@@ -119,7 +137,6 @@ public class PokerService {
             Player p = iterator.next();
             if (p.getBestHand().getScoringCombination().getValue() != topScore) {
                 iterator.remove();
-                ;
             }
         }
         if (somePlayers.size() == 1) {
@@ -309,7 +326,6 @@ public class PokerService {
         if (tieBreakPlayers.size() == 0) {
             throw new RuntimeException("Ran out of players");
         }
-        Player p = tieBreakPlayers.get(0);
         return tieBreakHighestKicker(tieBreakPlayers, 0);
     }
 
@@ -417,13 +433,21 @@ public class PokerService {
     }
 
     private void setupPlayer1(Set<Card> cards) {
-        Player player1 = players.get(0);
+        setupPlayer(cards, 0);
+    }
+
+    private void setupPlayer2(Set<Card> cards) {
+        setupPlayer(cards, 1);
+    }
+
+    private void setupPlayer(Set<Card> cards, int index) {
+    Player player = players.get(index);
         for (Card playerCard : cards) {
             Iterator<Card> iterator = deck.iterator();
             while (iterator.hasNext()) {
                 Card card = iterator.next();
                 if (card.equals(playerCard)) {
-                    player1.getCards().add(card);
+                    player.getCards().add(card);
                     iterator.remove();
                 }
             }

@@ -15,7 +15,7 @@ import static com.simongarton.poker.model.Suit.*;
 @Service
 public class PokerService {
 
-    public Suit[] SUITS = new Suit[]{CLUBS, DIAMONDS, HEARTS, SPADES};
+    private Suit[] SUITS = new Suit[]{CLUBS, DIAMONDS, HEARTS, SPADES};
 
     private List<Card> deck;
     private Set<Card> communityCards = new HashSet<>();
@@ -75,7 +75,7 @@ public class PokerService {
         return 1.0 * wins / iterations;
     }
 
-    public Player getWinner(Set<Card> cards, int playerCount, Set<Card> communityCards) {
+    protected Player getWinner(Set<Card> cards, int playerCount, Set<Card> communityCards) {
         setupPlayers(playerCount);
         setupDeck();
 
@@ -90,7 +90,7 @@ public class PokerService {
         return winner;
     }
 
-    public Player getWinner(List<Set<Card>> playerCards, Set<Card> communityCards) {
+    protected Player getWinner(List<Set<Card>> playerCards, Set<Card> communityCards) {
         setupPlayers(2);
         setupDeck();
 
@@ -113,7 +113,7 @@ public class PokerService {
         Collections.shuffle(deck, new Random());
     }
 
-    public Player getWinner(Set<Card> cards, int playerCount, int communityCardCount) {
+    protected Player getWinner(Set<Card> cards, int playerCount, int communityCardCount) {
         setupPlayers(playerCount);
         setupDeck();
 
@@ -191,15 +191,18 @@ public class PokerService {
         handResponse.setHand(new ArrayList<>(actualCards));
         handResponse.setCommunity(new ArrayList<>(actualCommunityCards));
         handResponse.setPlayerCount(playerCount);
+        double percentage;
         if (actualCommunityCards.size() == 0) {
             handResponse.setCommunityCardCount(3);
-            handResponse.setPercentage(getWinningPercentage(actualCards, playerCount, 3, iterations));
+            percentage = getWinningPercentage(actualCards, playerCount, 3, iterations);
         } else {
             handResponse.setCommunityCardCount(actualCommunityCards.size());
-            handResponse.setPercentage(getWinningPercentage(actualCards, playerCount, actualCommunityCards, iterations));
+            percentage = getWinningPercentage(actualCards, playerCount, actualCommunityCards, iterations);
             BestHand bestHand = scoreHand(actualCards, actualCommunityCards);
             handResponse.setScoringCombination(bestHand.getScoringCombination().getName());
         }
+        handResponse.setPercentage(percentage);
+        handResponse.setShouldFold(percentage <= (1.0 / playerCount));
         return handResponse;
     }
 
@@ -397,7 +400,7 @@ public class PokerService {
         return sortedCards;
     }
 
-    public void scoreHands() {
+    protected void scoreHands() {
         for (Player player : players) {
             BestHand result = scoreHand(player.getCards(), communityCards);
             player.setBestHand(result);
@@ -436,12 +439,8 @@ public class PokerService {
         setupPlayer(cards, 0);
     }
 
-    private void setupPlayer2(Set<Card> cards) {
-        setupPlayer(cards, 1);
-    }
-
     private void setupPlayer(Set<Card> cards, int index) {
-    Player player = players.get(index);
+        Player player = players.get(index);
         for (Card playerCard : cards) {
             Iterator<Card> iterator = deck.iterator();
             while (iterator.hasNext()) {
@@ -451,6 +450,12 @@ public class PokerService {
                     iterator.remove();
                 }
             }
+        }
+        Iterator<Card> iterator = deck.iterator();
+        while(player.getCards().size() < 2) {
+            Card card = iterator.next();
+            player.getCards().add(card);
+            iterator.remove();
         }
     }
 
@@ -483,7 +488,7 @@ public class PokerService {
         }
     }
 
-    public Set<Card> getFullDeck() {
+    protected Set<Card> getFullDeck() {
         Set<Card> deck = new HashSet<>();
         for (Suit suit : SUITS) {
             for (Rank rank : Rank.getRanks()) {
@@ -494,15 +499,15 @@ public class PokerService {
         return deck;
     }
 
-    public List<Card> getDeck() {
+    protected List<Card> getDeck() {
         return deck;
     }
 
-    public Set<Card> getCommunityCards() {
+    protected Set<Card> getCommunityCards() {
         return communityCards;
     }
 
-    public List<Player> getPlayers() {
+    protected List<Player> getPlayers() {
         return players;
     }
 }

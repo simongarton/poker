@@ -14,4 +14,5 @@ public class HandResponse {
     private int communityCardCount;
     private int iterations;
     private String scoringCombination;
+    private boolean shouldFold;
 }

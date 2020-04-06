@@ -19,12 +19,6 @@ class PokerServiceTest {
     @Autowired
     private PokerService pokerService;
 
-    @Test
-    void empty() {
-        Player winner = pokerService.getWinner(Collections.emptySet(), 2, Collections.emptySet());
-        assertNull(winner);
-    }
-
 //    @Test
 //    void mapOutTwoCards() {
 //        Set<Card> cards = new HashSet<>();

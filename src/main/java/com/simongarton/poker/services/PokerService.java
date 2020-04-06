@@ -67,19 +67,53 @@ public class PokerService {
         }
         HandResponse handResponse = new HandResponse();
         Player winner = getWinner(actualCards, playerCount, actualCommunityCards);
-        Player player1 = players.get(0);
-        handResponse.setPlayer1(new PlayerOutcome(player1));
-        handResponse.setWinner(new PlayerOutcome(winner));
-        handResponse.setHand(new ArrayList<>(actualCards));
+        if (winner != null) {
+            handResponse.setWinner(new PlayerOutcome(winner));
+            handResponse.setDidWin(winner.getId() == 1);
+        }
         handResponse.setCommunity(new ArrayList<>(actualCommunityCards));
         handResponse.setCommunityCardCount(actualCommunityCards.size());
-        handResponse.setDidWin(winner.getId() == 1);
         players.forEach(p -> handResponse.getPlayers().add(new PlayerOutcome(p)));
 
         double percentage = getWinningPercentage(actualCards, playerCount, actualCommunityCards, 1000);
         handResponse.setPercentage(percentage);
         handResponse.setShouldFold(percentage <= (1.0 / playerCount));
         return handResponse;
+    }
+
+    public BriefHandResponse getBriefHandResponse(String cards, String communityCards, int playerCount) {
+        Set<Card> actualCards = figureOutCards(cards);
+        Set<Card> actualCommunityCards = figureOutCards(communityCards);
+        for (Card card : actualCards) {
+            if (actualCommunityCards.contains(card)) {
+                throw new HandException("Invalid hand, duplicated cards");
+            }
+        }
+        if (actualCommunityCards.size() < 3) {
+            throw new HandException("Must have at least 3 community cards.");
+        }
+        BriefHandResponse briefHandResponse = new BriefHandResponse();
+        Player winner = getWinner(actualCards, playerCount, actualCommunityCards);
+        if (winner != null) {
+            briefHandResponse.setWinner(new BriefPlayerOutcome(winner));
+            briefHandResponse.setDidWin(winner.getId() == 1);
+        }
+        briefHandResponse.setCommunity(getBriefCards(actualCommunityCards));
+        briefHandResponse.setCommunityCardCount(actualCommunityCards.size());
+        players.forEach(p -> briefHandResponse.getPlayers().add(new BriefPlayerOutcome(p)));
+
+        double percentage = getWinningPercentage(actualCards, playerCount, actualCommunityCards, 1000);
+        briefHandResponse.setPercentage(percentage);
+        briefHandResponse.setShouldFold(percentage <= (1.0 / playerCount));
+        return briefHandResponse;
+    }
+
+    public String getBriefCards(Set<Card> cards) {
+        String briefCards = "";
+        for (Card card : cards) {
+            briefCards = briefCards + card.getCaption() + " ";
+        }
+        return briefCards.trim();
     }
 
     public double getWinningPercentage(Set<Card> cards, int playerCount, int communityCardCount, int iterations) {
@@ -247,6 +281,15 @@ public class PokerService {
         return actualCards;
     }
 
+    public List<Card> getRandomCards(int n) {
+        setupDeck();
+        List<Card> cards = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            cards.add(deck.get(i));
+        }
+        return cards;
+    }
+
     private static class Pair {
         private int high;
         private int low;
@@ -260,8 +303,8 @@ public class PokerService {
         Map<Integer, Pair> pairMap = new HashMap<>();
         for (Player p : somePlayers) {
             Pair pair = new Pair();
-            List<Card> sortedCards = new ArrayList<>(p.getCards());
-            sortedCards.sort(Comparator.comparing(c -> ((Card) c).getRank().getValue()));
+            List<Card> sortedCards = new ArrayList<>(p.getBestHand().getCards());
+            sortedCards.sort(Comparator.comparing(c -> c.getRank().getValue()));
             pair.low = sortedCards.get(0).getRank().getValue();
             pair.high = sortedCards.get(sortedCards.size() - 1).getRank().getValue();
             pairMap.put(p.getId(), pair);
@@ -331,7 +374,7 @@ public class PokerService {
         List<Player> tieBreakPlayers = new ArrayList<>(somePlayers);
         int highCard = 0;
         for (Player p : tieBreakPlayers) {
-            for (Card c : p.getCards()) {
+            for (Card c : p.getBestHand().getCards()) {
                 int high = c.getRank().getValue();
                 if (high > highCard) {
                     highCard = high;
@@ -342,7 +385,7 @@ public class PokerService {
         while (iterator.hasNext()) {
             Player p = iterator.next();
             boolean hasHighCard = false;
-            for (Card c : p.getCards()) {
+            for (Card c : p.getBestHand().getCards()) {
                 if (c.getRank().getValue() == highCard) {
                     hasHighCard = true;
                 }

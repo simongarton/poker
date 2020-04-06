@@ -19,4 +19,12 @@ public class BestHand {
         this.cards = new HashSet<>(cards);
         this.remainingCards = new HashSet<>(remainingCards);
     }
+
+    public String getBriefCards() {
+        String briefCards = "";
+        for (Card card : cards) {
+            briefCards = briefCards + card.getCaption() + " ";
+        }
+        return briefCards.trim();
+    }
 }

@@ -283,13 +283,55 @@ class PokerServiceTest {
     }
 
     @Test
-    void getHandResponse() {
+    void testOddity() {
+        Set<Card> cards1 = new HashSet<>();
+        Set<Card> cards2 = new HashSet<>();
+        Set<Card> cardsCommunity = new HashSet<>();
+        cards1.add(new Card(Suit.SPADES, Rank.TEN));
+        cards1.add(new Card(Suit.SPADES, Rank.NINE));
+        cards2.add(new Card(Suit.DIAMONDS, Rank.FOUR));
+        cards2.add(new Card(Suit.DIAMONDS, Rank.QUEEN));
+        cardsCommunity.add(new Card(Suit.DIAMONDS, Rank.TEN));
+        cardsCommunity.add(new Card(Suit.DIAMONDS, Rank.JACK));
+        cardsCommunity.add(new Card(Suit.CLUBS, Rank.FOUR));
+        List<Set<Card>> players = new ArrayList<>();
+        players.add(cards1);
+        players.add(cards2);
+        Player winner = pokerService.getWinner(players, cardsCommunity);
+        assertEquals(1, winner.getId());
+    }
+
+    @Test
+    void getRecommendationResponse() {
         int playerCount = 2;
         int iterations = 100;
         String cards = "JS,JH";
         String communityCards = "KH,KS,KD";
-        RecommendationResponse recommendationResponse = pokerService.getRecommendationResponse(cards, communityCards, playerCount, iterations );
+        RecommendationResponse recommendationResponse = pokerService.getRecommendationResponse(cards, communityCards, playerCount, iterations);
         assertNotNull(recommendationResponse);
         assertEquals("Full House", recommendationResponse.getScoringCombination());
     }
+
+//    @Test
+//    void lookAtShouldFold() {
+//        int shouldFold = 0;
+//        int lost = 0;
+//        int correct = 0;
+//        int iterations = 10000;
+//        for (int i = 0; i < iterations; i++) {
+//            List<Card> randomCards = pokerService.getRandomCards(5);
+//            String cardString = randomCards.get(0).getAbbreviation() + "," + randomCards.get(1).getAbbreviation();
+//            String communityCardString = randomCards.get(2).getAbbreviation() + "," + randomCards.get(3).getAbbreviation() + "," + randomCards.get(4).getAbbreviation();
+//            BriefHandResponse briefHandResponse = pokerService.getBriefHandResponse(cardString, communityCardString, 5);
+//            if (briefHandResponse.isShouldFold()) {
+//                shouldFold++;
+//            }
+//            if (!briefHandResponse.isDidWin()) {
+//                lost++;
+//            }
+//            if (briefHandResponse.isShouldFold() && !briefHandResponse.isDidWin()) correct++;
+//            if (!briefHandResponse.isShouldFold() && briefHandResponse.isDidWin()) correct++;
+//        }
+//        System.out.println("After " + iterations + " iterations, I should have folded " + shouldFold + " times, I won " + (iterations - lost) + " times, so I was correct " + 100.0 * correct / iterations + "%");
+//    }
 }

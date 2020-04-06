@@ -1,5 +1,6 @@
 package com.simongarton.poker.controllers;
 
+import com.simongarton.poker.model.BriefHandResponse;
 import com.simongarton.poker.model.HandResponse;
 import com.simongarton.poker.model.RecommendationResponse;
 import com.simongarton.poker.services.PokerService;
@@ -28,4 +29,12 @@ public class PokerController {
                                         @RequestParam(required = true, name = "player_count") int playerCount) {
         return pokerService.getHandResponse(cards, communityCards, playerCount);
     }
+    @GetMapping("/brief")
+    public BriefHandResponse getBriefHandResponse(@RequestParam(required = true, name = "cards") String cards,
+                                                  @RequestParam(required = false, name = "community_cards") String communityCards,
+                                                  @RequestParam(required = true, name = "player_count") int playerCount) {
+        return pokerService.getBriefHandResponse(cards, communityCards, playerCount);
+    }
+
+
 }

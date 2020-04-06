@@ -22,4 +22,12 @@ public class Player {
         cards.sort(Comparator.comparing(c -> ((Card)c).getRank().getValue()).reversed());
         return cards;
     }
+
+    public String getBriefCards() {
+        String briefCards = "";
+        for (Card card : cards) {
+            briefCards = briefCards + card.getCaption() + " ";
+        }
+        return briefCards.trim();
+    }
 }

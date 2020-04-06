@@ -30,4 +30,14 @@ public class Card {
     public String getCaption() {
         return rank.getName() + " " + suit.getName();
     }
+
+    public static Card getRandomCard() {
+        Suit suit = Suit.getRandomSuit();
+        Rank rank = Rank.getRandomRank();
+        return new Card(suit, rank);
+    }
+
+    public String getAbbreviation() {
+        return rank.getAbbreviation() + suit.getCode();
+    }
 }

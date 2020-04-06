@@ -3,34 +3,33 @@ package com.simongarton.poker.model;
 import com.simongarton.poker.exceptions.CardFormatException;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 @Getter
 public enum Rank {
 
-    TWO("2", 2),
-    THREE("3", 3),
-    FOUR("4", 4),
-    FIVE("5", 5),
-    SIX("6", 6),
-    SEVEN("7", 7),
-    EIGHT("8", 8),
-    NINE("9", 9),
-    TEN("10", 10),
-    JACK("Jack", 11),
-    QUEEN("Queen", 12),
-    KING("King", 13),
-    ACE("Ace", 14);
+    TWO("2", 2, "2"),
+    THREE("3", 3, "3"),
+    FOUR("4", 4, "4"),
+    FIVE("5", 5, "5"),
+    SIX("6", 6, "6"),
+    SEVEN("7", 7, "7"),
+    EIGHT("8", 8, "8"),
+    NINE("9", 9, "9"),
+    TEN("10", 10, "10"),
+    JACK("Jack", 11, "J"),
+    QUEEN("Queen", 12, "Q"),
+    KING("King", 13, "K"),
+    ACE("Ace", 14, "A");
 
     private String name;
     private int value;
+    private String abbreviation;
 
-    Rank(String name, int value) {
+    Rank(String name, int value, String abbreviation) {
         this.name = name;
         this.value = value;
+        this.abbreviation = abbreviation;
     }
 
     public static List<Rank> getRanks() {
@@ -40,14 +39,16 @@ public enum Rank {
     }
 
     public static Rank findRank(String r) {
-        if (r.equals("10")) {
-            return TEN;
-        }
         for (Rank rank : values()) {
-            if (rank.getName().substring(0,1).equalsIgnoreCase(r)) {
+            if (rank.getAbbreviation().equalsIgnoreCase(r)) {
                 return rank;
             }
         }
         throw new CardFormatException("Could not find rank " + r);
+    }
+
+    public static Rank getRandomRank() {
+        Random r = new Random();
+        return getRanks().get(r.nextInt(Rank.getRanks().size()));
     }
 }

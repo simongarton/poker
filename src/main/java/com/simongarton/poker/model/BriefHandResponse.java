@@ -6,12 +6,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class HandResponse {
+public class BriefHandResponse {
 
     private double percentage;
-    private List<Card> community;
-    private List<PlayerOutcome> players = new ArrayList<>();
-    private PlayerOutcome winner;
+    private String community;
+    private List<BriefPlayerOutcome> players = new ArrayList<>();
+    private BriefPlayerOutcome winner;
     private int communityCardCount;
     private boolean shouldFold;
     private boolean didWin;

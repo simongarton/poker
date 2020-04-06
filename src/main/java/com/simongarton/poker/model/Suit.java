@@ -3,6 +3,10 @@ package com.simongarton.poker.model;
 import com.simongarton.poker.exceptions.CardFormatException;
 import lombok.Getter;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
+
 @Getter
 public enum Suit {
     CLUBS("Clubs", "C"),
@@ -26,4 +30,14 @@ public enum Suit {
         }
         throw new CardFormatException("Could not find suit " + s);
     }
+
+    public static List<Suit> getSuits() {
+        return Arrays.asList(Suit.values());
+    }
+
+    public static Suit getRandomSuit() {
+        Random r = new Random();
+        return getSuits().get(r.nextInt(Suit.getSuits().size()));
+    }
+
 }

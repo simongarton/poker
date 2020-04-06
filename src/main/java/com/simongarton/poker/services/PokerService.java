@@ -23,6 +23,65 @@ public class PokerService {
     private Player winner;
     private boolean debug = false;
 
+    public RecommendationResponse getRecommendationResponse(String cards, String communityCards, int playerCount, Integer iterations) {
+        Set<Card> actualCards = figureOutCards(cards);
+        Set<Card> actualCommunityCards = figureOutCards(communityCards);
+        for (Card card : actualCards) {
+            if (actualCommunityCards.contains(card)) {
+                throw new HandException("Invalid hand, duplicated cards");
+            }
+        }
+        if (iterations == null) {
+            iterations = 1000;
+        }
+        RecommendationResponse recommendationResponse = new RecommendationResponse();
+        recommendationResponse.setIterations(iterations);
+        recommendationResponse.setHand(new ArrayList<>(actualCards));
+        recommendationResponse.setCommunity(new ArrayList<>(actualCommunityCards));
+        recommendationResponse.setPlayerCount(playerCount);
+        double percentage;
+        if (actualCommunityCards.size() == 0) {
+            recommendationResponse.setCommunityCardCount(3);
+            percentage = getWinningPercentage(actualCards, playerCount, 3, iterations);
+        } else {
+            recommendationResponse.setCommunityCardCount(actualCommunityCards.size());
+            percentage = getWinningPercentage(actualCards, playerCount, actualCommunityCards, iterations);
+            BestHand bestHand = scoreHand(actualCards, actualCommunityCards);
+            recommendationResponse.setScoringCombination(bestHand.getScoringCombination().getName());
+        }
+        recommendationResponse.setPercentage(percentage);
+        recommendationResponse.setShouldFold(percentage <= (1.0 / playerCount));
+        return recommendationResponse;
+    }
+
+    public HandResponse getHandResponse(String cards, String communityCards, int playerCount) {
+        Set<Card> actualCards = figureOutCards(cards);
+        Set<Card> actualCommunityCards = figureOutCards(communityCards);
+        for (Card card : actualCards) {
+            if (actualCommunityCards.contains(card)) {
+                throw new HandException("Invalid hand, duplicated cards");
+            }
+        }
+        if (actualCommunityCards.size() < 3) {
+            throw new HandException("Must have at least 3 community cards.");
+        }
+        HandResponse handResponse = new HandResponse();
+        Player winner = getWinner(actualCards, playerCount, actualCommunityCards);
+        Player player1 = players.get(0);
+        handResponse.setPlayer1(new PlayerOutcome(player1));
+        handResponse.setWinner(new PlayerOutcome(winner));
+        handResponse.setHand(new ArrayList<>(actualCards));
+        handResponse.setCommunity(new ArrayList<>(actualCommunityCards));
+        handResponse.setCommunityCardCount(actualCommunityCards.size());
+        handResponse.setDidWin(winner.getId() == 1);
+        players.forEach(p -> handResponse.getPlayers().add(new PlayerOutcome(p)));
+
+        double percentage = getWinningPercentage(actualCards, playerCount, actualCommunityCards, 1000);
+        handResponse.setPercentage(percentage);
+        handResponse.setShouldFold(percentage <= (1.0 / playerCount));
+        return handResponse;
+    }
+
     public double getWinningPercentage(Set<Card> cards, int playerCount, int communityCardCount, int iterations) {
 
         double wins = 0;
@@ -173,37 +232,6 @@ public class PokerService {
 
     private Player tieBreakFullHouse(List<Player> somePlayers) {
         return tieBreakTwoLayers(somePlayers);
-    }
-
-    public HandResponse getHandResponse(String cards, String communityCards, int playerCount, Integer iterations) {
-        Set<Card> actualCards = figureOutCards(cards);
-        Set<Card> actualCommunityCards = figureOutCards(communityCards);
-        for (Card card : actualCards) {
-            if (actualCommunityCards.contains(card)) {
-                throw new HandException("Invalid hand, duplicated cards");
-            }
-        }
-        if (iterations == null) {
-            iterations = 1000;
-        }
-        HandResponse handResponse = new HandResponse();
-        handResponse.setIterations(iterations);
-        handResponse.setHand(new ArrayList<>(actualCards));
-        handResponse.setCommunity(new ArrayList<>(actualCommunityCards));
-        handResponse.setPlayerCount(playerCount);
-        double percentage;
-        if (actualCommunityCards.size() == 0) {
-            handResponse.setCommunityCardCount(3);
-            percentage = getWinningPercentage(actualCards, playerCount, 3, iterations);
-        } else {
-            handResponse.setCommunityCardCount(actualCommunityCards.size());
-            percentage = getWinningPercentage(actualCards, playerCount, actualCommunityCards, iterations);
-            BestHand bestHand = scoreHand(actualCards, actualCommunityCards);
-            handResponse.setScoringCombination(bestHand.getScoringCombination().getName());
-        }
-        handResponse.setPercentage(percentage);
-        handResponse.setShouldFold(percentage <= (1.0 / playerCount));
-        return handResponse;
     }
 
     private Set<Card> figureOutCards(String cards) {
@@ -452,7 +480,7 @@ public class PokerService {
             }
         }
         Iterator<Card> iterator = deck.iterator();
-        while(player.getCards().size() < 2) {
+        while (player.getCards().size() < 2) {
             Card card = iterator.next();
             player.getCards().add(card);
             iterator.remove();

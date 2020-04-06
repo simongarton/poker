@@ -5,10 +5,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -292,8 +288,8 @@ class PokerServiceTest {
         int iterations = 100;
         String cards = "JS,JH";
         String communityCards = "KH,KS,KD";
-        HandResponse handResponse = pokerService.getHandResponse(cards, communityCards, playerCount, iterations );
-        assertNotNull(handResponse);
-        assertEquals("Full House", handResponse.getScoringCombination());
+        RecommendationResponse recommendationResponse = pokerService.getRecommendationResponse(cards, communityCards, playerCount, iterations );
+        assertNotNull(recommendationResponse);
+        assertEquals("Full House", recommendationResponse.getScoringCombination());
     }
 }

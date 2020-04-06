@@ -2,19 +2,17 @@ package com.simongarton.poker.model;
 
 import lombok.Data;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Data
-public class HandResponse {
+public class RecommendationResponse {
 
     private double percentage;
     private List<Card> hand;
     private List<Card> community;
-    private List<PlayerOutcome> players = new ArrayList<>();
-    private PlayerOutcome player1;
-    private PlayerOutcome winner;
+    private int playerCount;
     private int communityCardCount;
+    private int iterations;
+    private String scoringCombination;
     private boolean shouldFold;
-    private boolean didWin;
 }

@@ -50,7 +50,8 @@ public class PokerService {
             recommendationResponse.setScoringCombination(bestHand.getScoringCombination().getName());
         } else {
             recommendationResponse.setCommunityCardCount(actualCommunityCards.size());
-            percentage = getWinningPercentage(actualCards, playerCount, actualCommunityCards, iterations);
+            Set<Card> roundedUpCommunityCards = roundUpCommunityCards(actualCommunityCards, 3);
+            percentage = getWinningPercentage(actualCards, playerCount, roundedUpCommunityCards, iterations);
             BestHand bestHand = scoreHand(actualCards, actualCommunityCards);
             recommendationResponse.setScoringCombination(bestHand.getScoringCombination().getName());
         }
@@ -546,6 +547,17 @@ public class PokerService {
                 break;
             }
         }
+    }
+
+    private Set<Card> roundUpCommunityCards(Set<Card> actualCommunityCards, int communityCardCount) {
+        Set<Card> newCards = new HashSet<>(actualCommunityCards);
+        Iterator<Card> iterator = deck.iterator();
+        while (newCards.size() < communityCardCount) {
+            Card card = iterator.next();
+            newCards.add(card);
+            iterator.remove();
+        }
+        return newCards;
     }
 
     private void setupCommunityCards(Set<Card> communityCards) {

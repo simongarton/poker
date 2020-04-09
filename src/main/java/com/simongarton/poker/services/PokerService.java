@@ -17,7 +17,7 @@ public class PokerService {
 
     private Suit[] SUITS = new Suit[]{CLUBS, DIAMONDS, HEARTS, SPADES};
 
-    private List<Card> deck;
+    private List<Card> deck = new ArrayList<>();
     private Set<Card> communityCards = new HashSet<>();
     private List<Player> players = new ArrayList<>();
     private Player winner;

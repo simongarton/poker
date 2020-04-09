@@ -202,16 +202,17 @@ class PokerServiceTest {
         Card card3 = new Card(Suit.CLUBS, Rank.FOUR);
         Card card4 = new Card(Suit.SPADES, Rank.FOUR);
         Card card5 = new Card(Suit.SPADES, Rank.QUEEN);
-        Card card6 = new Card(Suit.HEARTS, Rank.FOUR);
-        Card card7 = new Card(Suit.DIAMONDS, Rank.FOUR);
-        Card card8 = new Card(Suit.HEARTS, Rank.FIVE);
-        Card card9 = new Card(Suit.DIAMONDS, Rank.FIVE);
-        Card card10 = new Card(Suit.HEARTS, Rank.THREE);
         player1Cards.add(card1);
         player1Cards.add(card2);
         player1Cards.add(card3);
         player1Cards.add(card4);
         player1Cards.add(card5);
+
+        Card card6 = new Card(Suit.HEARTS, Rank.FOUR);
+        Card card7 = new Card(Suit.DIAMONDS, Rank.FOUR);
+        Card card8 = new Card(Suit.HEARTS, Rank.FIVE);
+        Card card9 = new Card(Suit.DIAMONDS, Rank.FIVE);
+        Card card10 = new Card(Suit.HEARTS, Rank.THREE);
         player2Cards.add(card6);
         player2Cards.add(card7);
         player2Cards.add(card8);
@@ -222,7 +223,24 @@ class PokerServiceTest {
         players.add(player2Cards);
         Player winner = pokerService.getWinner(players, communityCards);
         assertNotNull(winner);
+        assertEquals(2, winner.getId());
+        player2Cards.clear();
+
+        Card card11 = new Card(Suit.HEARTS, Rank.THREE);
+        Card card12 = new Card(Suit.DIAMONDS, Rank.THREE);
+        Card card13 = new Card(Suit.HEARTS, Rank.TWO);
+        player2Cards.add(card6);
+        player2Cards.add(card7);
+        player2Cards.add(card11);
+        player2Cards.add(card12);
+        player2Cards.add(card13);
+        players = new ArrayList<>();
+        players.add(player1Cards);
+        players.add(player2Cards);
+        winner = pokerService.getWinner(players, communityCards);
+        assertNotNull(winner);
         assertEquals(1, winner.getId());
+
     }
 
     @Test

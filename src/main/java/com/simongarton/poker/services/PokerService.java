@@ -25,6 +25,9 @@ public class PokerService {
 
     public RecommendationResponse getRecommendationResponse(String cards, String communityCards, int playerCount, Integer iterations) {
         Set<Card> actualCards = figureOutCards(cards);
+        if (actualCards.size() != 2) {
+            throw new HandException("Invalid hand, duplicated cards");
+        }
         Set<Card> actualCommunityCards = figureOutCards(communityCards);
         for (Card card : actualCards) {
             if (actualCommunityCards.contains(card)) {
@@ -43,6 +46,8 @@ public class PokerService {
         if (actualCommunityCards.size() == 0) {
             recommendationResponse.setCommunityCardCount(3);
             percentage = getWinningPercentage(actualCards, playerCount, 3, iterations);
+            BestHand bestHand = scoreHand(actualCards, Collections.emptySet());
+            recommendationResponse.setScoringCombination(bestHand.getScoringCombination().getName());
         } else {
             recommendationResponse.setCommunityCardCount(actualCommunityCards.size());
             percentage = getWinningPercentage(actualCards, playerCount, actualCommunityCards, iterations);
@@ -51,6 +56,7 @@ public class PokerService {
         }
         recommendationResponse.setPercentage(percentage);
         recommendationResponse.setShouldFold(percentage <= (1.0 / playerCount));
+
         return recommendationResponse;
     }
 
@@ -225,13 +231,7 @@ public class PokerService {
         List<Player> somePlayers = new ArrayList<>(players);
         somePlayers.sort(Comparator.comparing(p -> ((Player) p).getBestHand().getScoringCombination().getValue()).reversed());
         int topScore = somePlayers.get(0).getBestHand().getScoringCombination().getValue();
-        Iterator<Player> iterator = somePlayers.iterator();
-        while (iterator.hasNext()) {
-            Player p = iterator.next();
-            if (p.getBestHand().getScoringCombination().getValue() != topScore) {
-                iterator.remove();
-            }
-        }
+        somePlayers.removeIf(p -> p.getBestHand().getScoringCombination().getValue() != topScore);
         if (somePlayers.size() == 1) {
             return somePlayers.get(0);
         }
@@ -276,6 +276,9 @@ public class PokerService {
         String[] cardList = cards.split(",");
         for (String card : cardList) {
             Card actualCard = new Card(card);
+            if (actualCards.contains(actualCard)) {
+                throw new HandException("Invalid hand, duplicated cards");
+            }
             actualCards.add(actualCard);
         }
         return actualCards;
@@ -409,7 +412,7 @@ public class PokerService {
 
     private Player tieBreakHighestKicker(List<Player> somePlayers, int n) {
         Player p1 = somePlayers.get(0);
-        if (n >= p1.getSortedRemainingCards().size() - 1) {
+        if (n >= p1.getSortedRemainingCards().size()) {
             // TODO split pot
             return null;
         }
